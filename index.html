@@ -275,70 +275,43 @@ select option{background:#141720;}
     <span class="pill dot" id="blogger-status-pill">✗ Not signed in</span>
   </div>
 </div><div class="layout">
-<aside class="sidebar"><div class="sidebar-section">
-    <div class="section-label">🔗 Blogger Connection</div>
-    <div id="signin-block">
-      <div class="settings-note" style="border-color:rgba(0,212,255,.5);color:var(--accent2);line-height:1.8;margin-bottom:10px;">
-        <div style="font-size:11px;font-weight:800;color:var(--accent);margin-bottom:6px;">🔑 How to connect your Blogger account</div>
-        <strong>Step 1</strong> &mdash; Open this in a new tab:<br/>
-        <a href="https://developers.google.com/oauthplayground/" target="_blank"
-           style="color:var(--accent);font-weight:700;word-break:break-all;">
-          developers.google.com/oauthplayground &nearr;
-        </a><br/><br/>
-        <strong>Step 2</strong> &mdash; In the left panel, find <em>Blogger API v3</em>, tick<br/>
-        <code style="background:var(--s3);padding:1px 5px;border-radius:3px;font-size:9px;color:var(--text);">https://www.googleapis.com/auth/blogger</code><br/>
-        then click <strong>Authorise APIs</strong> &rarr; sign in with Google &rarr;
-        click <strong>Exchange authorization code for tokens</strong>.<br/><br/>
-        <strong>Step 3</strong> &mdash; Copy the <strong>Access token</strong>
-        (the long string starting with <code style="color:var(--accent);">ya29.</code>)
-        and paste it below.
-      </div>
-      <div class="input-group">
-        <label class="input-label">Access Token <span class="badge-tip">ya29.xxx</span></label>
-        <input type="password" id="manual-token-input"
-               placeholder="Paste ya29.xxxx... token here" autocomplete="off"/>
-      </div>
-      <div class="input-group" style="margin-top:6px;">
-        <label class="input-label">Your Name
-          <span style="color:var(--muted);font-weight:400;">(display only)</span>
-        </label>
-        <input type="text" id="manual-name-input" placeholder="e.g. Alvin"/>
-      </div>
-      <button class="btn btn-primary btn-full" style="margin-top:10px;"
-              onclick="signInManualToken()">
-        <span class="btn-text">&#128273; Connect with Token</span>
-        <div class="spin"></div>
-      </button>
-      <div class="settings-note" style="margin-top:8px;font-size:9px;">
-        Tokens expire after ~1 hour. Come back and paste a fresh one whenever needed.
-        Blog ID is in your Blogger dashboard URL &mdash;
-        imgbb key: free at <a href="https://api.imgbb.com" target="_blank">api.imgbb.com</a>
-      </div>
+<div class="sidebar-section">
+  <div class="section-label">🔑 Blogger Connection</div>
+  <div id="signin-block">
+    <div class="settings-note" style="border-color:rgba(0,212,255,.5);color:var(--accent2);line-height:1.8;margin-bottom:10px;">
+      <div style="font-size:11px;font-weight:800;color:var(--accent);margin-bottom:6px;">🔑 How to connect your Blogger account</div>
+      <strong>Step 1</strong> — Open this in a new tab:<br/>
+      <a href="https://developers.google.com/oauthplayground/" target="_blank" style="color:var(--accent);font-weight:700;">developers.google.com/oauthplayground &nearr;</a><br/><br/>
+      <strong>Step 2</strong> — In the left panel, find <em>Blogger API v3</em>, tick<br/>
+      <code style="background:var(--s3);padding:1px 5px;border-radius:3px;font-size:9px;color:var(--text);">https://www.googleapis.com/auth/blogger</code><br/>
+      then click <strong>Authorise APIs</strong> → sign in with Google → click <strong>Exchange authorization code for tokens</strong>.<br/><br/>
+      <strong>Step 3</strong> — Copy the <strong>Access token</strong> (the long string starting with <code style="color:var(--accent);">ya29.</code>) and paste it below.
     </div>
-    <div class="signed-in-block" id="signedin-block">
-      <div class="user-info-row">
-        <img alt="" class="user-avatar" id="user-avatar" src="" style="display:none;"/>
-        <div style="flex:1;min-width:0;">
-          <div class="user-name" id="user-name"></div>
-          <div class="user-email" id="user-email"></div>
-        </div>
-        <button class="signout-btn" onclick="signOut()">Sign out</button>
+    <div class="input-group">
+      <label class="input-label">Access Token <span class="badge-tip">ya29.xxx</span></label>
+      <input type="password" id="manual-token-input" placeholder="Paste ya29.xxxx... token here" autocomplete="off"/>
+    </div>
+    <div class="input-group" style="margin-top:6px;">
+      <label class="input-label">Your Name <span style="color:var(--muted);font-weight:400;">(display only)</span></label>
+      <input type="text" id="manual-name-input" placeholder="e.g. Alvin"/>
+    </div>
+    <button class="btn btn-primary btn-full" style="margin-top:10px;" onclick="signInManualToken()">
+      <span class="btn-text">🔑 Connect with Token</span>
+      <div class="spin"></div>
+    </button>
+  </div>
+  <div class="signed-in-block" id="signedin-block" style="display:none;">
+    <div class="user-info-row">
+      <img alt="" class="user-avatar" id="user-avatar" src="" style="display:none;"/>
+      <div style="flex:1;min-width:0;">
+        <div class="user-name" id="user-name"></div>
+        <div class="user-email" id="user-email"></div>
       </div>
-      <div class="input-group">
-        <label class="input-label">Blog ID</label>
-        <input id="blog-id" placeholder="3020785713747810415" type="text"/>
-      </div>
-      <div class="input-group">
-        <label class="input-label">imgbb API Key <span class="badge-tip">FAST UPLOADS</span></label>
-        <input id="imgbb-key" placeholder="paste your imgbb API key" type="text"/>
-      </div>
-      <button class="btn btn-secondary btn-full" onclick="saveConfig()">
-        <span class="btn-text">💾 Save Config</span>
-      </button>
-      <div class="settings-note">
-        Blog ID is in your Blogger dashboard URL.<br/>
-        imgbb key: free at <a href="https://api.imgbb.com" target="_blank">api.imgbb.com</a>
-      </div>
+      <button class="signout-btn" onclick="signOut()">Sign out</button>
+    </div>
+  </div>
+</div>
+<div class="divider"></div>
     </div>
   </div><div class="divider"></div><div class="sidebar-section">
     <div class="section-label">📺 Channel Library <span class="badge-new">NEW</span></div>
@@ -1027,6 +1000,9 @@ updatePills();
 } catch(e) { log(‘err’,’loadConfig: ’+e.message); }
 }
 function saveConfig() {
+    config.oauthToken = accessToken;
+  config.oauthUser = oauthUser;
+  config.tokenExpiresAt = tokenExpiresAt;
 var imgbbVal = document.getElementById(‘imgbb-key’).value.trim();
 if (imgbbVal) IMGBB_API_KEY = imgbbVal;
 config = {
@@ -2760,6 +2736,51 @@ clearTimeout(toastTimer); toastTimer=setTimeout(function(){ t.classList.remove(�
 }
 function escHtml(s){ return (s||’’).replace(/&/g,’&’).replace(/</g,’<’).replace(/>/g,’>’).replace(/”/g,’”’).replace(/’/g,’’’); }
 function escAttr(s){ return (s||’’).replace(/’/g,”'”).replace(/”/g,’”’); }
+  // ========== MANUAL TOKEN LOGIN ==========
+function signInManualToken() {
+  var token = document.getElementById('manual-token-input').value.trim();
+  var name  = document.getElementById('manual-name-input').value.trim() || 'Sports 803 User';
+  if (!token) { toast('Paste your access token first', 'error'); return; }
+  accessToken = token;
+  tokenExpiresAt = Date.now() + 3600 * 1000; // 1 hour expiry
+  oauthUser = { name: name, email: '', picture: '' };
+  setSignedInUI(oauthUser);
+  saveConfig();  // we'll update saveConfig to store token
+  toast('Connected! Token valid for ~1 hour.', 'success');
+}
+
+function setSignedInUI(user) {
+  var si = document.getElementById('signin-block');
+  var sd = document.getElementById('signedin-block');
+  if (!si || !sd) return;
+  if (user && accessToken) {
+    si.style.display = 'none';
+    sd.classList.add('visible');
+    document.getElementById('user-name').textContent = user.name || '';
+    document.getElementById('user-email').textContent = user.email || '';
+    var av = document.getElementById('user-avatar');
+    if (user.picture) { av.src = user.picture; av.style.display = 'block'; } 
+    else av.style.display = 'none';
+  } else {
+    si.style.display = 'block';
+    sd.classList.remove('visible');
+  }
+  updateAuthStatusDisplay(); // you already have a function to update top bar
+}
+
+function signOut() {
+  accessToken = null;
+  oauthUser = null;
+  tokenExpiresAt = 0;
+  setSignedInUI(null);
+  saveConfig();
+  var ti = document.getElementById('manual-token-input');
+  if (ti) ti.value = '';
+  toast('Signed out', 'info');
+}
+
+// Update existing saveConfig() to store token info
+// We'll modify the original saveConfig later
 </script>
 
 </body>
