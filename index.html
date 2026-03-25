@@ -263,7 +263,20 @@ select option{background:#141720;}
 }
 </style>
 </head>
-<body><div class="topbar">
+<body> 
+  <div id="auth-overlay">
+  <div class="auth-card">
+    <div class="auth-logo">SPORTS 803</div>
+    <div class="auth-desc">Enter your Access Token to unlock the dashboard.</div>
+    <div class="input-group" style="margin-bottom: 15px; text-align: left;">
+      <label class="input-label">Access Token</label>
+      <input type="password" id="login-token-input" placeholder="Paste token here...">
+    </div>
+    <button class="btn btn-primary btn-full" onclick="handleDashboardLogin()">Unlock Dashboard</button>
+    <div id="login-error" style="color: var(--red); font-size: 11px; margin-top: 10px; display: none;">Invalid Token</div>
+  </div>
+</div>
+<div class="topbar">
   <div class="topbar-logo">
     <span class="badge">S803</span>
     Sports 803
@@ -474,6 +487,33 @@ select option{background:#141720;}
   </div>
 </main>
 </div><div class="toast" id="toast"></div><script>
+
+// Login Logic from v5.5
+function handleDashboardLogin() {
+  const tokenInput = document.getElementById('login-token-input').value.trim();
+  const errorMsg = document.getElementById('login-error');
+  
+  // Replace 'YOUR_SECRET_TOKEN' with the actual token you want to use
+  const SECRET_TOKEN = "Sports803_Admin"; 
+
+  if (tokenInput === SECRET_TOKEN) {
+    document.getElementById('auth-overlay').classList.add('hidden');
+    localStorage.setItem('s803_authenticated', 'true');
+    toast('Access Granted', 'success');
+  } else {
+    errorMsg.style.display = 'block';
+    toast('Access Denied', 'error');
+  }
+}
+
+// Check if already logged in when page opens
+window.addEventListener('DOMContentLoaded', () => {
+  if (localStorage.getItem('s803_authenticated') === 'true') {
+    document.getElementById('auth-overlay').classList.add('hidden');
+  }
+});
+
+  
 // ─── CONFIG ────────────────────────────────────────────────────────────────
 const LEAGUES = [
   {id:'soccer/uefa.champions',name:'UCL',           emoji:'🏆',label:'champions league',espn:true },
@@ -2781,6 +2821,20 @@ function signOut() {
 
 // Update existing saveConfig() to store token info
 // We'll modify the original saveConfig later
+
+                    /* Login Overlay Styles from v5.5 */
+#auth-overlay {
+  position: fixed; inset: 0; background: var(--bg); z-index: 9999;
+  display: flex; align-items: center; justify-content: center; padding: 20px;
+}
+#auth-overlay.hidden { display: none; }
+.auth-card {
+  background: var(--s1); border: 1px solid var(--border); border-radius: 16px;
+  padding: 32px; width: 100%; max-width: 400px; text-align: center;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+}
+.auth-logo { font-size: 24px; font-weight: 800; color: var(--accent); margin-bottom: 8px; }
+.auth-desc { color: var(--muted2); font-size: 13px; margin-bottom: 24px; }
 </script>
 
 </body>
