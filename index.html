@@ -262,6 +262,7 @@ select option{background:#141720;}
   .date-indicator{margin-left:0;}
 }
 </style>
+  <script src="https://accounts.google.com/gsi/client" async></script>
 </head>
 <body><div class="topbar">
   <div class="topbar-logo">
@@ -272,58 +273,28 @@ select option{background:#141720;}
   <span class="topbar-sub">AI Auto-Post Dashboard</span>
   <div class="topbar-right">
     <span class="pill dot ok" id="api-status-pill">✓ Auto-Content On</span>
-    <span class="pill dot" id="blogger-status-pill">✗ Not signed in</span>
-  </div>
+<span class="pill dot" id="blogger-status-pill">⚪ Not signed in</span>  </div>
 </div><div class="layout">
-<aside class="sidebar"><div class="sidebar-section">
-    <div class="section-label">🔗 Blogger Connection</div>
-    <div id="signin-block">
-      <div class="settings-note" style="border-color:rgba(0,212,255,.5);color:var(--accent2);line-height:1.8;margin-bottom:10px;">
-        <div style="font-size:11px;font-weight:800;color:var(--accent);margin-bottom:6px;">🔑 How to connect your Blogger account</div>
-        <strong>Step 1</strong> &mdash; Open this in a new tab:<br/>
-        <a href="https://developers.google.com/oauthplayground/" target="_blank"
-           style="color:var(--accent);font-weight:700;word-break:break-all;">
-          developers.google.com/oauthplayground &nearr;
-        </a><br/><br/>
-        <strong>Step 2</strong> &mdash; In the left panel, find <em>Blogger API v3</em>, tick<br/>
-        <code style="background:var(--s3);padding:1px 5px;border-radius:3px;font-size:9px;color:var(--text);">https://www.googleapis.com/auth/blogger</code><br/>
-        then click <strong>Authorise APIs</strong> &rarr; sign in with Google &rarr;
-        click <strong>Exchange authorization code for tokens</strong>.<br/><br/>
-        <strong>Step 3</strong> &mdash; Copy the <strong>Access token</strong>
-        (the long string starting with <code style="color:var(--accent);">ya29.</code>)
-        and paste it below.
+<aside class="sidebar">
+  <div class="sidebar-section">
+  <div class="section-label">🔑 Blogger Connection</div>
+  <div id="signin-block">
+    <button class="btn btn-primary btn-full" id="auth-btn" onclick="handleAuth()">
+      <span class="btn-text">🔑 Sign in with Google</span>
+      <div class="spin"></div>
+    </button>
+  </div>
+  <div id="signedin-block" class="signed-in-block" style="display:none;">
+    <div class="user-info-row">
+      <img id="user-avatar" class="user-avatar" alt="" style="display:none;">
+      <div style="flex:1; min-width:0;">
+        <div id="user-name" class="user-name"></div>
+        <div id="user-email" class="user-email"></div>
       </div>
-      <div class="input-group">
-        <label class="input-label">Access Token <span class="badge-tip">ya29.xxx</span></label>
-        <input type="password" id="manual-token-input"
-               placeholder="Paste ya29.xxxx... token here" autocomplete="off"/>
-      </div>
-      <div class="input-group" style="margin-top:6px;">
-        <label class="input-label">Your Name
-          <span style="color:var(--muted);font-weight:400;">(display only)</span>
-        </label>
-        <input type="text" id="manual-name-input" placeholder="e.g. Alvin"/>
-      </div>
-      <button class="btn btn-primary btn-full" style="margin-top:10px;"
-              onclick="signInManualToken()">
-        <span class="btn-text">&#128273; Connect with Token</span>
-        <div class="spin"></div>
-      </button>
-      <div class="settings-note" style="margin-top:8px;font-size:9px;">
-        Tokens expire after ~1 hour. Come back and paste a fresh one whenever needed.
-        Blog ID is in your Blogger dashboard URL &mdash;
-        imgbb key: free at <a href="https://api.imgbb.com" target="_blank">api.imgbb.com</a>
-      </div>
+      <button class="signout-btn" onclick="signOut()">Sign out</button>
     </div>
-    <div class="signed-in-block" id="signedin-block">
-      <div class="user-info-row">
-        <img alt="" class="user-avatar" id="user-avatar" src="" style="display:none;"/>
-        <div style="flex:1;min-width:0;">
-          <div class="user-name" id="user-name"></div>
-          <div class="user-email" id="user-email"></div>
-        </div>
-        <button class="signout-btn" onclick="signOut()">Sign out</button>
-      </div>
+  </div>
+</div>
       <div class="input-group">
         <label class="input-label">Blog ID</label>
         <input id="blog-id" placeholder="3020785713747810415" type="text"/>
@@ -775,7 +746,110 @@ return ‘<div class="channel-item">’
 +’</div>’;
 }).join(’’);
 }
+// ==================== GOOGLE OAUTH ====================
+const GOOGLE_CLIENT_ID = '985566043500-5iktnbam2up75fehdkdfhp4sn829jrhd.apps.googleusercontent.com'; // same as v5.5
+let tokenClient = null; // will be initialised after GIS loads
 
+function initTokenClient() {
+  if (!GOOGLE_CLIENT_ID) return;
+  tokenClient = google.accounts.oauth2.initTokenClient({
+    client_id: GOOGLE_CLIENT_ID,
+    scope: 'https://www.googleapis.com/auth/blogger',
+    callback: (response) => {
+      if (response.error) {
+        toast('Authentication error: ' + response.error, 'err');
+        return;
+      }
+      oauthToken = response.access_token;
+      tokenExpiresAt = Date.now() + 3600 * 1000; // 1 hour
+      oauthUser = { name: 'Google User', email: '', picture: '' };
+      fetchGoogleProfile(); // try to get name/email from token
+      setSignedInUI(oauthUser);
+      saveConfig();
+      toast('Signed in ✓', 'ok');
+      log('ok', 'Signed in with Google');
+    }
+  });
+}
+
+async function fetchGoogleProfile() {
+  if (!oauthToken) return;
+  try {
+    const res = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+      headers: { 'Authorization': 'Bearer ' + oauthToken }
+    });
+    if (res.ok) {
+      const data = await res.json();
+      oauthUser = {
+        name: data.name || 'Google User',
+        email: data.email || '',
+        picture: data.picture || ''
+      };
+      setSignedInUI(oauthUser);
+      saveConfig();
+    }
+  } catch (e) {
+    console.warn('Could not fetch profile', e);
+  }
+}
+
+function handleAuth() {
+  if (oauthToken && Date.now() < tokenExpiresAt) {
+    signOut();
+  } else {
+    if (!tokenClient) {
+      if (typeof google !== 'undefined' && google.accounts) {
+        initTokenClient();
+      } else {
+        toast('Google API not loaded yet. Please refresh.', 'err');
+        return;
+      }
+    }
+    tokenClient.requestAccessToken();
+  }
+}
+
+function signOut() {
+  if (oauthToken) {
+    // Revoke token (optional)
+    google.accounts.oauth2.revoke(oauthToken, () => {});
+  }
+  oauthToken = null;
+  oauthUser = null;
+  tokenExpiresAt = 0;
+  setSignedInUI(null);
+  saveConfig();
+  toast('Signed out', 'info');
+  log('info', 'Signed out');
+}
+
+function setSignedInUI(user) {
+  const signinBlock = document.getElementById('signin-block');
+  const signedinBlock = document.getElementById('signedin-block');
+  const statusPill = document.getElementById('blogger-status-pill');
+  if (!signinBlock || !signedinBlock) return;
+
+  if (user && oauthToken && Date.now() < tokenExpiresAt) {
+    signinBlock.style.display = 'none';
+    signedinBlock.classList.add('visible');
+    document.getElementById('user-name').textContent = user.name || 'User';
+    document.getElementById('user-email').textContent = user.email || '';
+    const avatar = document.getElementById('user-avatar');
+    if (user.picture) {
+      avatar.src = user.picture;
+      avatar.style.display = 'block';
+    } else {
+      avatar.style.display = 'none';
+    }
+    statusPill.textContent = '✓ Signed in';
+    statusPill.className = 'pill dot ok';
+  } else {
+    signinBlock.style.display = 'block';
+    signedinBlock.classList.remove('visible');
+    statusPill.textContent = '✗ Not signed in';
+    statusPill.className = 'pill dot err';
+  }
+}
 // ─── TheSportsDB ──────────────────────────────────────────────────────────
 var TSDB_KEY  = ‘3’;
 var TSDB_BASE = ‘https://www.thesportsdb.com/api/v1/json/’+TSDB_KEY;
