@@ -757,34 +757,7 @@ return ‘<div class="channel-item">’
 +’</div>’;
 }).join(’’);
 }
-// ==================== GOOGLE OAUTH ====================
-const GOOGLE_CLIENT_ID = '985566043500-5iktnbam2up75fehdkdfhp4sn829jrhd.apps.googleusercontent.com'; // same as v5.5
-let tokenClient = null; // will be initialised after GIS loads
 
-function initTokenClient() {
-  if (!GOOGLE_CLIENT_ID) return;
-  tokenClient = google.accounts.oauth2.initTokenClient({
-    client_id: GOOGLE_CLIENT_ID,
-    scope: 'https://www.googleapis.com/auth/blogger',
-    callback: (response) => {
-      if (response.error) {
-        toast('Authentication error: ' + response.error, 'err');
-        return;
-      }
-      oauthToken = response.access_token; 
-      tokenExpiresAt = Date.now() + 3600 * 1000; // 1 hour
-      oauthUser = { name: 'Google User', email: '', picture: '' };
-      fetchGoogleProfile(); // try to get name/email from token
-      setSignedInUI(oauthUser);
-      saveConfig();
-      config.oauthToken = oauthToken;
-config.oauthUser = oauthUser;
-config.tokenExpiresAt = tokenExpiresAt;
-      toast('Signed in ✓', 'ok');
-      log('ok', 'Signed in with Google');
-    }
-  });
-}
 
 async function fetchGoogleProfile() {
   if (!oauthToken) return;
@@ -1158,90 +1131,43 @@ var oauthToken = null, oauthUser = null, tokenExpiresAt = 0;
 var GOOGLE_CLIENT_ID = ‘985566043500-5iktnbam2up75fehdkdfhp4sn829jrhd.apps.googleusercontent.com’;
 var IMGBB_API_KEY    = ‘c8cd5657bfdfc6c298c9366deebfa7a7’;
 
-function loadConfig()
-// Restore Google OAuth session
-if (saved.oauthToken && saved.tokenExpiresAt && Date.now() < saved.tokenExpiresAt) {
-  oauthToken = saved.oauthToken;
-  oauthUser = saved.oauthUser || null;
-  tokenExpiresAt = saved.tokenExpiresAt;
-  setSignedInUI(oauthUser);
-  log('ok', 'Session restored – ' + Math.round((tokenExpiresAt - Date.now()) / 60000) + 'm remaining');
-} else if (saved.oauthToken) {
-  oauthToken = null; oauthUser = null; tokenExpiresAt = 0;
-  setSignedInUI(null);
-  log('info', 'Previous token expired – sign in again');
-} else {
-  setSignedInUI(null);
-}
-  {
-loadChannelLibraryFromStorage();
-try {
-var saved = JSON.parse(localStorage.getItem(‘s803_config_v2’)||’{}’);
-if (saved.blogId)      document.getElementById(‘blog-id’).value = saved.blogId;
-if (saved.imgbbKey)  { document.getElementById(‘imgbb-key’).value = saved.imgbbKey; IMGBB_API_KEY = saved.imgbbKey; }
-if (saved.lang)        document.getElementById(‘post-lang’).value = saved.lang;
-if (saved.style)       document.getElementById(‘post-style’).value = saved.style;
-if (saved.publishMode) document.getElementById(‘publish-mode’).value = saved.publishMode;
-if (saved.activeLeagues) activeLeagues = new Set(saved.activeLeagues);
-if (saved.clientId)    GOOGLE_CLIENT_ID = saved.clientId;
-if (saved.schedAmount) document.getElementById(‘sched-amount’).value = saved.schedAmount;
-if (saved.schedUnit)   { document.getElementById(‘sched-unit’).value = saved.schedUnit; updateSchedUnitLimits(); }
-updateSchedPreview();
-if (saved.globalLabels)      globalLabels = saved.globalLabels;
-if (saved.globalSchedulerOn) { globalSchedulerOn = saved.globalSchedulerOn; updateSchedulerUI(); }
-// Restore session if token still valid
-if (saved.oauthToken && saved.tokenExpiresAt && Date.now() < saved.tokenExpiresAt) {
-oauthToken     = saved.oauthToken;
-oauthUser      = saved.oauthUser || null;
-tokenExpiresAt = saved.tokenExpiresAt;
-setSignedInUI(oauthUser);
-var mins = Math.round((saved.tokenExpiresAt - Date.now()) / 60000);
-log(‘ok’, ’Session restored for ’ + ((oauthUser && oauthUser.name) ? oauthUser.name : ‘user’) + ’ – ’ + mins + ‘m remaining’);
-} else if (saved.oauthToken) {
-oauthToken = null; oauthUser = null; tokenExpiresAt = 0;
-setSignedInUI(null);
-log(‘info’, ‘Previous token expired – paste a fresh token to reconnect’);
-} else {
-setSignedInUI(null);
-}
-config = saved;
-updatePills();
-} catch(e) { log(‘err’,’loadConfig: ’+e.message); }
-}
-function saveConfig() {
-var imgbbVal = document.getElementById(‘imgbb-key’).value.trim();
-if (imgbbVal) IMGBB_API_KEY = imgbbVal;
-config = {
-blogId:            document.getElementById(‘blog-id’).value.trim(),
-imgbbKey:          imgbbVal || IMGBB_API_KEY,
-lang:              document.getElementById(‘post-lang’).value,
-style:             document.getElementById(‘post-style’).value,
-publishMode:       document.getElementById(‘publish-mode’).value,
-activeLeagues:     Array.from(activeLeagues),
-clientId:          GOOGLE_CLIENT_ID,
-oauthToken:        oauthToken,
-oauthUser:         oauthUser,
-tokenExpiresAt:    tokenExpiresAt,
-schedAmount:       document.getElementById(‘sched-amount’).value,
-schedUnit:         document.getElementById(‘sched-unit’).value,
-globalLabels:      globalLabels,
-globalSchedulerOn: globalSchedulerOn,
-};
-localStorage.setItem(‘s803_config_v2’, JSON.stringify(config));
-updatePills();
-toast(‘Saved!’,‘ok’);
-log(‘ok’,‘Configuration saved.’);
-}
-function updatePills() {
-var apiPill  = document.getElementById(‘api-status-pill’);
-var blogPill = document.getElementById(‘blogger-status-pill’);
-apiPill.className=‘pill dot ok’; apiPill.textContent=‘✓ Auto-Content On’;
-if (oauthToken && Date.now() < tokenExpiresAt) {
-blogPill.className=‘pill dot ok’;
-blogPill.textContent=’✓ ‘+(oauthUser&&oauthUser.name?oauthUser.name.split(’ ’)[0]:‘Signed In’);
-} else {
-blogPill.className=‘pill dot err’; blogPill.textContent=‘✗ Not signed in’;
-}
+function loadConfig() {
+  loadChannelLibraryFromStorage();
+  try {
+    var saved = JSON.parse(localStorage.getItem('s803_config_v2')||'{}');
+    if (saved.blogId)      document.getElementById('blog-id').value = saved.blogId;
+    if (saved.imgbbKey)  { document.getElementById('imgbb-key').value = saved.imgbbKey; IMGBB_API_KEY = saved.imgbbKey; }
+    if (saved.lang)        document.getElementById('post-lang').value = saved.lang;
+    if (saved.style)       document.getElementById('post-style').value = saved.style;
+    if (saved.publishMode) document.getElementById('publish-mode').value = saved.publishMode;
+    if (saved.activeLeagues) activeLeagues = new Set(saved.activeLeagues);
+    if (saved.clientId)    GOOGLE_CLIENT_ID = saved.clientId;
+    if (saved.schedAmount) document.getElementById('sched-amount').value = saved.schedAmount;
+    if (saved.schedUnit)   { document.getElementById('sched-unit').value = saved.schedUnit; updateSchedUnitLimits(); }
+    updateSchedPreview();
+    if (saved.globalLabels)      globalLabels = saved.globalLabels;
+    if (saved.globalSchedulerOn) { globalSchedulerOn = saved.globalSchedulerOn; updateSchedulerUI(); }
+
+    // --- Token restoration (inserted here) ---
+    if (saved.oauthToken && saved.tokenExpiresAt && Date.now() < saved.tokenExpiresAt) {
+      oauthToken = saved.oauthToken;
+      oauthUser = saved.oauthUser || null;
+      tokenExpiresAt = saved.tokenExpiresAt;
+      setSignedInUI(oauthUser);
+      log('ok', 'Session restored – ' + Math.round((tokenExpiresAt - Date.now()) / 60000) + 'm remaining');
+    } else if (saved.oauthToken) {
+      oauthToken = null; oauthUser = null; tokenExpiresAt = 0;
+      setSignedInUI(null);
+      log('info', 'Previous token expired – sign in again');
+    } else {
+      setSignedInUI(null);
+    }
+
+    config = saved;
+    updatePills();
+  } catch(e) {
+    log('err','loadConfig: '+e.message);
+  }
 }
 
 // ─── GOOGLE OAUTH ──────────────────────────────────────────────────────────
