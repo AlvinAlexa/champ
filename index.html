@@ -388,8 +388,9 @@ button:disabled{opacity:.4;cursor:not-allowed;transform:none!important}
           <div class="iframe-code" id="highlights-player-code">Add a highlights URL above…</div>
         </div>
         <div style="display:flex;gap:6px;margin-top:7px">
-          <button class="btn-orange btn-sm" onclick="insertHighlightsPlayer()">🎬 Insert Highlights Player</button>
-          <button class="btn-ghost btn-sm" onclick="copyHighlightsPlayerCode()">📋 Copy Code</button>
+          <button class="btn-gold btn-sm" onclick="ytSearchAndFill(null)">🔍 YT Search</button>
+<button class="btn-orange btn-sm" onclick="insertHighlightsPlayer()">🎬 Insert Highlights Player</button>
+<button class="btn-ghost btn-sm" onclick="copyHighlightsPlayerCode()">📋 Copy Code</button>
         </div>
       </div>
       <div class="card">
@@ -763,9 +764,10 @@ button:disabled{opacity:.4;cursor:not-allowed;transform:none!important}
     <div class="form-group"><label>Highlights Video URL / Embed</label><input type="text" id="hl-video"></div>
     <div class="form-group"><label>Highlights Body</label><textarea id="hl-body" rows="9"></textarea></div>
     <div style="display:flex;gap:7px;flex-wrap:wrap;margin-top:8px">
-      <button class="btn-purple btn-sm" onclick="genHLText()">🤖 AI Generate</button>
-      <button class="btn-red btn-sm" onclick="postHighlights()">📤 Post</button>
-      <button class="btn-ghost btn-sm" onclick="closeModal('modal-hl')">Cancel</button>
+     <button class="btn-gold btn-sm" onclick="ytSearchForModal()">🔍 YT Search</button>
+<button class="btn-purple btn-sm" onclick="genHLText()">🤖 AI Generate</button>
+<button class="btn-red btn-sm" onclick="postHighlights()">📤 Post</button>
+<button class="btn-ghost btn-sm" onclick="closeModal('modal-hl')">Cancel</button>
     </div>
   </div>
 </div>
