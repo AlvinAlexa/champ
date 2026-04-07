@@ -1760,11 +1760,13 @@ async function testDDKanquLookup(){
 }
 
 // ═══ HIGHLIGHTS PLAYER ═══
-const HLPLAYER_BASE='https://sports803.github.io/player/';
 function buildHighlightsPlayerIframe(url){
   if(!url)return'';
-  const src=HLPLAYER_BASE+'?embed='+encodeURIComponent(url);
-  return'<div style="margin:18px 0;position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:10px"><iframe loading="lazy" src="'+src+'" style="position:absolute;top:0;left:0;width:100%;height:100%;border:0;border-radius:10px" allowfullscreen allow="autoplay; encrypted-media"></iframe></div>';
+  // Use the same player base as your streams (from Settings)
+  const playerBase = CFG.playerBase || 'https://sports803.github.io/player/';
+  // The embed parameter should get the raw embed URL (not double-encoded)
+  const src = playerBase + '?embed=' + encodeURIComponent(url);
+  return '<div style="margin:18px 0;position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:10px"><iframe loading="lazy" src="'+src+'" style="position:absolute;top:0;left:0;width:100%;height:100%;border:0;border-radius:10px" allowfullscreen allow="autoplay; encrypted-media"></iframe></div>';
 }
 function updateHighlightsPlayer(){
   const url=v('highlights-video-url');
@@ -1844,7 +1846,7 @@ async function searchYTHighlights(ev){
     for(const item of items){const ch=item.snippet?.channelId,cn=item.snippet?.channelTitle||'';if(priorityCh.includes(ch)){best=item;break;}if(!best&&preferSources.some(s=>cn.toLowerCase().includes(s.toLowerCase())))best=item;}
     if(!best)best=items[0];
     const videoId=best.id?.videoId;if(!videoId){toast('No video ID found','w');return null;}
-    return{url:'https://www.youtube.com/watch?v='+videoId,embed:'https://www.youtube.com/embed/'+videoId,title:best.snippet?.title||'',channel:best.snippet?.channelTitle||'',thumb:best.snippet?.thumbnails?.high?.url||''};
+    return{url:'https://www.youtube.com/embed/'+videoId,embed:'https://www.youtube.com/embed/'+videoId,title:best.snippet?.title||'',channel:best.snippet?.channelTitle||'',thumb:best.snippet?.thumbnails?.high?.url||''};
   }catch(e){toast('YouTube search failed: '+e.message,'e');return null;}
 }
 
